@@ -88,7 +88,7 @@ export default {
 	mounted() {
 		this.getNotes();
 		this.mobileScreenMatches = window.matchMedia('(max-width: 768px)').matches;
-		window.addEventListener('resize', function () {
+		window.addEventListener('resize', () => {
 			this.mobileScreenMatches = window.matchMedia('(max-width: 768px)').matches;
 		});
 	},
