@@ -2,9 +2,8 @@ import Vue from 'vue';
 import { BootstrapVue, IconsPlugin } from 'bootstrap-vue';
 import App from './App.vue';
 
-// Import bootstrap and bootstrap-vue
-import 'bootstrap/dist/css/bootstrap.css';
-import 'bootstrap-vue/dist/bootstrap-vue.css';
+// Import bootstrap and bootstrap-vue with my customization
+import './custom-bv.scss';
 
 // Import animate.css
 import 'animate.css';
