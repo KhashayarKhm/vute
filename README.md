@@ -1,4 +1,4 @@
-# v-note
+# Vute
 
 ## Project setup
 ```

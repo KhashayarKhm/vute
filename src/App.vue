@@ -22,7 +22,7 @@
 					class="m-0 h3"
 					:class="{ 'mx-5': !mobileScreenMatches }"
 				>
-					<strong>V-Note</strong>
+					<strong>Vute</strong>
 				</h1>
 			</b-row>
 			<b-row style="height: calc(100% - 3em); display: flex; justify-content: center">
