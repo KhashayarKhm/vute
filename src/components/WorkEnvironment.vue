@@ -39,7 +39,7 @@
 			>
 				<transition enter-active-class="animate__animated animate__backInDown">
 					<note
-						v-show="note && !switchNote"
+						v-show="(note !== 'home') && !switchNote"
 						:display="!editMode"
 						:note="currentNote"
 						@edit="editNote"
@@ -48,17 +48,18 @@
 				</transition>
 				<transition leave-active-class="animate__animated animate__backOutDown">
 					<note
-						v-show="note && switchNote"
+						v-show="(note !== 'home') && switchNote"
 						:display="!editMode"
 						:note="previousNote"
 					/>
 				</transition>
 				<transition
-					enter-active-class="animate__animated animate__backInDown"
+					appear-active-class="animate__animated animate__backInDown"
 					leave-active-class="animate__animated animate__backOutDown"
+					appear
 				>
 					<div
-						v-if="!note"
+						v-if="note === 'home'"
 						class="no-choose"
 					>
 						<h1 style="display: flex; align-items: center">
@@ -102,7 +103,8 @@ export default {
 			validator: (tagsList) => tagsList.every((value) => typeof value === 'string'),
 		},
 		note: {
-			validator: (noteObject) => typeof noteObject.subject === 'string' && typeof noteObject.tag === 'string' && typeof noteObject.content === 'string',
+			validator: (noteObject) => noteObject === 'home' || (typeof noteObject.subject === 'string' && typeof noteObject.tag === 'string' && typeof noteObject.content === 'string'),
+			default: 'home',
 		},
 		addNew: Boolean,
 	},
@@ -117,10 +119,10 @@ export default {
 	},
 	computed: {
 		currentNote() {
-			return this.note || { subject: '', tag: '', content: '' };
+			return this.note === 'home' ? { subject: '', tag: '', content: '' } : this.note;
 		},
 		noteSubject() {
-			return this.note ? this.note.subject : '';
+			return this.note === 'home' ? '' : this.note.subject;
 		},
 	},
 	watch: {

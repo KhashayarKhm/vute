@@ -1,79 +1,73 @@
 <template>
-	<div id="app">
-		<b-container
-			class="h-100"
-			fluid
-		>
-			<b-row
-				:align-h="mobileScreenMatches ? 'around' : 'end'"
-				align-v="center"
-				cols="12"
-				style="height: 3em"
+	<v-app style="background-color: #263238;">
+		<navigation-drawer
+			v-model="drawerValue"
+			:tag-object="organizedNotes"
+			@change="newTab = $event"
+			@new-note="workEnvMode.addNew = true"
+		/>
+		<v-main>
+			<b-container
+				class="h-100"
+				fluid
 			>
-				<b-button
-					v-if="mobileScreenMatches"
-					v-b-toggle.note-list
-					variant="outline-primary"
-					class="border-0"
-				>
-					<b-icon-file-text />
-				</b-button>
-				<h1
-					class="m-0 h3"
-					:class="{ 'mx-5': !mobileScreenMatches }"
-				>
-					<strong>Vute</strong>
-				</h1>
-			</b-row>
-			<b-row style="height: calc(100% - 3em); display: flex; justify-content: center">
-				<b-col
-					lg="9"
-					md="8"
+				<b-row
+					:align-h="mobileScreenMatches ? 'around' : 'end'"
+					align-v="center"
 					cols="12"
-					order-md="2"
-					class="h-100"
+					style="height: 3em"
 				>
-					<work-environment
-						:tags="tags"
-						:add-new="workEnvMode.addNew"
-						:note="targetDisplayNote"
-						@modify="modifyNote"
-						@remove-note="removeNote"
-					/>
-				</b-col>
-				<b-col
-					col
-					lg="3"
-					md="4"
-					order-md="1"
-					:style="{
-						height: mobileScreenMatches ? 0 : null,
-						position: mobileScreenMatches ? 'absolute' : null,
-					}"
-				>
-					<sidebar
-						:toggle="mobileScreenMatches"
-						:tags="tags"
-						:notes="organizedNotes"
-						@add-note="workEnvMode.addNew = true"
-						@switch-note="targetDisplayNote = $event"
-					/>
-				</b-col>
-			</b-row>
-		</b-container>
-	</div>
+					<h1
+						class="m-0 h3"
+						:class="{ 'mx-5': !mobileScreenMatches }"
+					>
+						<strong>Vute</strong>
+					</h1>
+				</b-row>
+				<b-row style="height: calc(100% - 3em); display: flex; justify-content: center">
+					<b-col
+						lg="9"
+						md="8"
+						cols="12"
+						order-md="2"
+						class="h-100"
+					>
+						<work-environment
+							:tags="tags"
+							:add-new="workEnvMode.addNew"
+							:note="selectedTab"
+							@modify="modifyNote"
+							@remove-note="removeNote"
+						/>
+					</b-col>
+				</b-row>
+			</b-container>
+			<v-btn
+				class="rounded-r-circle blue-grey darken-2 position-absolute my-4 ml-n1"
+				style="bottom: 0;"
+				elevation="2"
+				icon
+				small
+				dark
+				tile
+				@click="drawerValue = true"
+			>
+				<v-icon>mdi-chevron-right</v-icon>
+			</v-btn>
+		</v-main>
+	</v-app>
 </template>
 
 <script>
 import ZangoDB from 'zangodb';
 import WorkEnvironment from './components/WorkEnvironment.vue';
-import Sidebar from './components/Sidebar.vue';
+import NavigationDrawer from './components/NavigationDrawer.vue';
 
 export default {
 	name: 'App',
 	components: {
+		NavigationDrawer,
 		WorkEnvironment,
-		Sidebar,
 	},
 	data() {
 		return {
@@ -83,7 +77,22 @@ export default {
 			mobileScreenMatches: true,
 			database: new ZangoDB.Db('v_note', { notes: ['subject', 'tag', 'content'] }),
 			targetDisplayNote: null,
+			drawerValue: false,
+			newTabValue: null,
 		};
+	},
+	computed: {
+		newTab: {
+			set(value) {
+				if (value === 'home' || value instanceof Object) {
+					const emptyObject = {};
+					this.newTabValue = value === 'home' ? 'home' : Object.assign(emptyObject, value);
+				}
+			},
+			get() {
+				return this.newTabValue;
+			},
+		},
 	},
 	mounted() {
 		this.getNotes();
@@ -110,6 +119,8 @@ export default {
 					this.organizedNotes[noteObject.tag].push(noteObject);
 				}
 			});
+			const emptyObject = {};
+			this.organizedNotes = Object.assign(emptyObject, this.organizedNotes);
 		},
 		async modifyNote(object) {
 			if (!object) {
@@ -189,6 +200,10 @@ body {
 	color: #f8f1f1;
 	width: 100%;
 	height: 100%;
+}
+
+#app .min-height-min-content {
+	min-height: min-content !important;
 }
 
 /* This styles are for "EditNoteEnv" component */
