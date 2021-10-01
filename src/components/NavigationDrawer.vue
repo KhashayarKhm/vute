@@ -64,9 +64,9 @@
 				>
 					<div
 						v-if="!tags.length && tipMessage"
-						class="tip-message teal accent-3 rounded blue-grey--text text--darken-4"
+						class="tip-message green accent-3 rounded blue-grey--text text--darken-4"
 					>
-						<span class="mb-1">Add your first shortcut</span>
+						<span class="mb-1">Take your first note</span>
 						<v-btn
 							color="blue-grey darken-4"
 							x-small
@@ -109,7 +109,7 @@
 			>
 				<v-list-item>
 					<v-list-item-content>
-						<span>Notes with "{{ selectedTag }}" tag</span>
+						<span>{{ selectedTag }}</span>
 					</v-list-item-content>
 					<v-btn
 						small
@@ -142,14 +142,14 @@
 				>
 					<v-list-item-icon class="my-1 mr-1">
 						<v-icon
-							color="teal accent-3"
+							color="green accent-3"
 							small
 						>
 							mdi-notebook-plus-outline
 						</v-icon>
 					</v-list-item-icon>
 					<v-list-item-content class="py-1">
-						<span class="teal--text text--accent-3">New note</span>
+						<span class="green--text text--accent-3">New note</span>
 					</v-list-item-content>
 				</v-list-item>
 			</v-list>
@@ -159,16 +159,16 @@
 				color="blue-grey darken-3"
 				tile
 				block
-				@click="newNote(null)"
+				@click="newNote('')"
 			>
 				<v-icon
 					class="mx-1"
-					color="teal accent-3"
+					color="green accent-3"
 					small
 				>
 					mdi-notebook-plus-outline
 				</v-icon>
-				<span class="teal--text text--accent-3">New note</span>
+				<span class="green--text text--accent-3">New note</span>
 			</v-btn>
 		</template>
 	</v-navigation-drawer>
@@ -185,18 +185,20 @@ export default {
 			type: Object,
 			required: true,
 			validator(value) {
-				return Object.values(value).every((tagValue) => tagValue.constructor === Array && tagValue.every((note) => typeof note._id === 'number' && typeof note.subject === 'string'));
+				return Object.values(value).every((tagValue) => tagValue.constructor === Array && tagValue.every((note) => typeof note._id === 'number'));
 			},
 		},
 		value: Boolean,
 	},
-	data: () => ({
-		tipMessage: true,
-		desktopBreakpoint: null,
-		drawerValue: false,
-		selectedTag: null,
-		viewNoteList: false,
-	}),
+	data() {
+		return {
+			tipMessage: true,
+			desktopBreakpoint: null,
+			drawerValue: false,
+			selectedTag: null,
+			viewNoteList: false,
+		};
+	},
 	computed: {
 		tags() {
 			return Object.keys(this.tagObject);
@@ -213,7 +215,8 @@ export default {
 				this.viewNoteList = false;
 			}
 			this.drawerValue = false;
-			this.$emit('new-note', defaultTag);
+			this.$emit('create', defaultTag);
+			this.$emit('shift', false);
 		},
 		selectTag(value) {
 			this.selectedTag = value;
@@ -222,6 +225,7 @@ export default {
 		selectNote(value) {
 			this.viewNoteList = false;
 			this.$emit('change', value);
+			this.$emit('shift', false);
 		},
 		onResize() {
 			this.desktopBreakpoint = matchMedia('(min-width: 768px)').matches;
@@ -238,9 +242,5 @@ export default {
 	margin-top: 12px;
 	margin-right: 12px;
 	padding: 12px;
-}
-
-.position-absolute {
-	position: absolute !important;
 }
 </style>

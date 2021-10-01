@@ -1,10 +1,13 @@
 <template>
-	<v-app style="background-color: #263238;">
+	<v-app
+		v-resize="onResize"
+		style="background-color: #263238;"
+	>
 		<navigation-drawer
 			v-model="drawerValue"
 			:tag-object="organizedNotes"
-			@change="newTab = $event"
-			@new-note="workEnvMode.addNew = true"
+			@change="currentTab = $event"
+			@create="defaultEditTag = $event"
 		/>
 		<v-main>
 			<b-container
@@ -43,16 +46,19 @@
 				</b-row>
 			</b-container>
 			<v-btn
-				class="rounded-r-circle blue-grey darken-2 position-absolute my-4 ml-n1"
-				style="bottom: 0;"
+				v-if="!desktopBreakpoint"
+				class="rounded-r-circle green accent-3 my-4 ml-n2"
+				style="bottom: 0; position: fixed;"
+				color="black"
 				elevation="2"
 				icon
 				small
-				dark
 				tile
 				@click="drawerValue = true"
 			>
-				<v-icon>mdi-chevron-right</v-icon>
+				<v-icon style="position: relative; right: -2px;">
+					mdi-chevron-right
+				</v-icon>
 			</v-btn>
 		</v-main>
 	</v-app>
@@ -79,29 +85,34 @@ export default {
 			targetDisplayNote: null,
 			drawerValue: false,
 			newTabValue: null,
+			currentTabValue: 'home',
+			editMode: false,
+			desktopBreakpoint: null,
+			defaultEditTag: null,
 		};
 	},
 	computed: {
-		newTab: {
+		currentTab: {
 			set(value) {
-				if (value === 'home' || value instanceof Object) {
+				if (value === 'home') {
+					this.currentTabValue = value;
+				} else if (value instanceof Object) {
 					const emptyObject = {};
-					this.newTabValue = value === 'home' ? 'home' : Object.assign(emptyObject, value);
+					this.currentTabValue = Object.assign(emptyObject, value);
 				}
 			},
 			get() {
-				return this.newTabValue;
+				return this.currentTabValue;
 			},
 		},
 	},
 	mounted() {
 		this.getNotes();
-		this.mobileScreenMatches = window.matchMedia('(max-width: 768px)').matches;
-		window.addEventListener('resize', () => {
-			this.mobileScreenMatches = window.matchMedia('(max-width: 768px)').matches;
-		});
 	},
 	methods: {
+		onResize() {
+			this.desktopBreakpoint = matchMedia('(min-width: 768px)').matches;
+		},
 		async getNotes() {
 			const notesOS = this.database.collection('notes');
 			const allNotes = await notesOS.find().toArray();
@@ -183,6 +194,7 @@ html {
 	line-height: 18px;
 	width: 100vw;
 	height: 100vh;
+	overflow: auto !important;
 }
 
 body {
@@ -206,68 +218,15 @@ body {
 	min-height: min-content !important;
 }
 
-/* This styles are for "EditNoteEnv" component */
-#app div.editor > form.add-form > div.editor__content > div.ProseMirror {
-	padding: 0 0.5rem 0 0.3rem;
-	border-left: 0.2em solid var(--red);
-	overflow-y: scroll;
-	height: 100%;
+#app .position-absolute {
+	position: absolute !important;
 }
 
-#app div.editor > form.add-form > div.editor__content > div.ProseMirror:focus-visible {
-	outline: none;
-	border-color: var(--green);
+#app .h-100 {
+	height: 100% !important;
 }
 
-#app div.editor > form.add-form > div.editor__content > div.ProseMirror pre {
-	background-color: var(--dark);
-	color: var(--light);
-	width: max-content;
-	padding: 0.5rem;
-	border-radius: 0.3rem;
-	margin: 1rem 0;
-	font-size: 0.8em;
-}
-
-#app div.editor > form.add-form > div.editor__content > div.ProseMirror blockquote {
-	background-color: inherit;
-	border-left: 0.2rem solid lightgrey;
-	padding-left: 0.5rem;
-}
-
-#app
-	div.editor
-	> form.add-form
-	> div.editor__content
-	> div.ProseMirror
-	> p.is-editor-empty:first-child::before {
-	content: attr(data-empty-text);
-	color: #aaa;
-	pointer-events: none;
-	height: 0;
-	font-style: italic;
-	font-size: 1.3rem;
-}
-
-.dynamic-sidebar-width {
-	width: 100% !important;
-}
-
-@media screen and (min-width: 576px) {
-	.dynamic-sidebar-width {
-		width: 325px !important;
-	}
-}
-
-@media screen and (min-width: 768px) {
-	.dynamic-sidebar-width {
-		width: 33.333% !important;
-	}
-}
-
-@media screen and (min-width: 992px) {
-	.dynamic-sidebar-width {
-		width: 25% !important;
-	}
+#app .mirror-y {
+	transform: rotateY(180deg);
 }
 </style>
