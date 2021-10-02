@@ -10,8 +10,6 @@
   "dependencies": {
     "@mdi/font": "^5.9.55",
     "animate.css": "^4.1.1",
-    "bootstrap": "^4.6.0",
-    "bootstrap-vue": "^2.21.2",
     "core-js": "^3.6.5",
     "tiptap": "^1.32.2",
     "tiptap-extensions": "^1.35.2",
