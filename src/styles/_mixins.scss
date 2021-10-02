@@ -1,0 +1,50 @@
+@mixin content-elements {
+	line-height: 1.75rem;
+	hr {
+		margin: 8px 0;
+	}
+	p {
+		margin: 0px;
+	}
+	pre {
+		padding: 0.3rem 1rem;
+		margin: 0.2rem 0;
+		border-radius: 5px;
+		background: #000000;
+		color: #FFFFFF;
+		font-size: 0.8rem;
+		overflow-x: auto;
+		code {
+			display: block;
+		}
+	}
+	p code {
+		padding: 0.2rem 0.4rem;
+		border-radius: 5px;
+		font-size: 0.8rem;
+		font-weight: bold;
+		background: rgba(#FFFFFF, 0.1);
+		color: rgba(#000000, 0.8);
+	}
+	ul,
+	ol {
+		padding-left: 1rem;
+	}
+	li > p,
+	li > ol,
+	li > ul {
+		margin: 0;
+	}
+	a {
+		color: inherit;
+	}
+	blockquote {
+		border-left: 3px solid rgba(#FFFFFF, 0.1);
+		color: rgba(#FFFFFF, 0.8);
+		padding-left: 0.8rem;
+		font-style: italic;
+		p {
+			margin: 0;
+		}
+	}
+}

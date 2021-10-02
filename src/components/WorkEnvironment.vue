@@ -1,178 +1,175 @@
-<template lang="html">
-	<div class="work-env">
-		<b-modal
-			id="make-sure-alert"
-			v-model="makeSureAlertVisibility"
-			body-bg-variant="primary"
-			body-text-variant="light"
-			centered
-			hide-header
-			hide-footer
-		>
-			<p>Are you sure to remove this note?</p>
-			<div class="d-flex align-content-center justify-content-center">
-				<b-button
-					size="sm"
-					variant="danger"
-					class="mx-1 w-25"
-					@click="removeNote"
-				>
-					Remove
-				</b-button>
-				<b-button
-					size="sm"
-					variant="outline-light"
-					class="mx-1 w-25"
-					@click="makeSureAlertVisibility = false"
-				>
-					Cancel
-				</b-button>
-			</div>
-		</b-modal>
+<template>
+	<v-container
+		class="h-100 pa-0"
+		fluid
+	>
 		<transition
-			enter-active-class="animate__animated animate__zoomIn"
-			leave-active-class="animate__animated animate__zoomOut"
+			enter-active-class="animate__animated animate__fadeIn animate__fast"
+			leave-active-class="animate__animated animate__fadeOut animate__fast"
+			mode="out-in"
 		>
-			<div
-				v-show="!addNew && !editMode"
-				class="sub-env"
-			>
-				<transition enter-active-class="animate__animated animate__backInDown">
-					<note
-						v-show="(note !== 'home') && !switchNote"
-						:display="!editMode"
-						:note="currentNote"
-						@edit="editNote"
-						@remove="makeSureAlertVisibility = true"
-					/>
-				</transition>
-				<transition leave-active-class="animate__animated animate__backOutDown">
-					<note
-						v-show="(note !== 'home') && switchNote"
-						:display="!editMode"
-						:note="previousNote"
-					/>
-				</transition>
-				<transition
-					appear-active-class="animate__animated animate__backInDown"
-					leave-active-class="animate__animated animate__backOutDown"
-					appear
-				>
-					<div
-						v-if="note === 'home'"
-						class="no-choose"
-					>
-						<h1 style="display: flex; align-items: center">
-							No note choose to display
-							<b-icon-exclamation-triangle />
-						</h1>
-					</div>
-				</transition>
-			</div>
+			<component
+				:is="currentComponent.name"
+				v-bind="currentComponent.props"
+				v-on="currentComponent.events"
+			/>
 		</transition>
-		<transition
-			enter-active-class="animate__animated animate__fadeInLeft"
-			leave-active-class="animate__animated animate__fadeOutLeft"
-		>
-			<div
-				v-show="addNew || editMode"
-				class="sub-env"
-			>
-				<edit-note-env
-					:tags="tags"
-					:note="targetEditingNote"
-					@exit="exitFromEditor($event)"
-				/>
-			</div>
-		</transition>
-	</div>
+	</v-container>
 </template>
 
 <script>
-import Note from './Note.vue';
-import EditNoteEnv from './EditNoteEnv.vue';
+import WorkEnvironmentNoteViewer from './WorkEnvironmentNoteViewer.vue';
+import WorkEnvironmentNoteEditor from './WorkEnvironmentNoteEditor.vue';
+import WorkEnvironmentHomeView from './WorkEnvironmentHomeView.vue';
 
 export default {
 	components: {
-		Note,
-		EditNoteEnv,
+		WorkEnvironmentNoteViewer,
+		WorkEnvironmentNoteEditor,
+		WorkEnvironmentHomeView,
+	},
+	model: {
+		prop: 'currentView',
+		event: 'change',
 	},
 	props: {
+		editMode: Boolean,
 		tags: {
 			type: Array,
 			validator: (tagsList) => tagsList.every((value) => typeof value === 'string'),
+			default: () => [],
 		},
-		note: {
-			validator: (noteObject) => noteObject === 'home' || (typeof noteObject.subject === 'string' && typeof noteObject.tag === 'string' && typeof noteObject.content === 'string'),
+		currentView: {
+			validator: (noteObject) => noteObject === 'home' || (typeof noteObject.tag === 'string' && typeof noteObject.content === 'object'),
 			default: 'home',
+			required: true,
 		},
-		addNew: Boolean,
+		defaultEditTag: {
+			type: String,
+			default: null,
+		},
 	},
 	data() {
 		return {
-			switchNote: false,
-			editMode: false,
-			previousNote: { subject: '', tag: '', content: '' },
-			targetEditingNote: { subject: '', tag: '', content: '' },
-			makeSureAlertVisibility: false,
+			previousTab: 'home',
 		};
 	},
 	computed: {
-		currentNote() {
-			return this.note === 'home' ? { subject: '', tag: '', content: '' } : this.note;
-		},
-		noteSubject() {
-			return this.note === 'home' ? '' : this.note.subject;
+		currentComponent() {
+			switch (true) {
+				case this.editMode:
+					/* For "work-environment-note-editor" component */
+					return {
+						name: 'work-environment-note-editor',
+						props: {
+							tags: this.tags,
+							note: this.currentView,
+							defaultTag: this.defaultEditTag,
+						},
+						events: {
+							exit: this.exitFromEditor,
+						},
+					};
+				case this.currentView !== 'home':
+					/* For "work-environment-note-viewer" component */
+					return {
+						name: 'work-environment-note-viewer',
+						props: {
+							note: this.currentView,
+							key: this.currentView._id,
+						},
+						events: {
+							edit: this.editNote,
+							remove: this.changeView,
+						},
+					};
+				default:
+					return {
+						name: 'work-environment-home-view',
+						props: {
+							history: this.history(),
+						},
+						events: {
+							change: this.changeView,
+						},
+					};
+			}
 		},
 	},
 	watch: {
-		note(currentObject, previousObject) {
-			if (previousObject) {
-				this.previousNote = previousObject;
-				this.switchNote = true;
-				setTimeout(function () { this.switchNote = false; });
-			} else {
-				this.switchNote = false;
+		defaultEditTag(value) {
+			if (typeof value === 'string') {
+				if (!this.tags.includes(value)) {
+					this.$emit('update:defaultEditTag', '');
+				}
+				this.$emit('update:editMode', true);
 			}
+		},
+		currentView(currentTab, previousTab) {
+			this.history(currentTab);
+			this.previousTab = previousTab;
 		},
 	},
 	methods: {
 		editNote() {
-			this.targetEditingNote = this.currentNote;
-			this.editMode = true;
+			this.$emit('update:editMode', true);
+		},
+		/* eslint consistent-return: 0 */
+		history(note, add = true) {
+			const historyList = JSON.parse(localStorage.getItem('history'));
+			if (this.validateHistoryValue(note)) {
+				if (add) {
+					if (!historyList || !(Array.isArray(historyList))) {
+						localStorage.setItem('history', JSON.stringify([note]));
+					} else if (historyList.every((item) => item._id !== note._id)) {
+						localStorage.setItem('history', JSON.stringify(historyList.concat(note)));
+					} else {
+						const modifiedHistory = historyList
+							.sort((sortNote) => (sortNote._id === note._id ? 1 : -1));
+						modifiedHistory.splice(modifiedHistory.length - 1, 1, note);
+						localStorage.setItem('history', JSON.stringify(modifiedHistory));
+					}
+				} else {
+					localStorage.setItem(
+						'history',
+						JSON.stringify(historyList.filter((item) => item._id !== note._id)),
+					);
+				}
+			} else {
+				if (historyList instanceof Array) {
+					const validList = historyList.filter((item) => this.validateHistoryValue(item));
+					const numberExtraNotes = validList.length - 8;
+					localStorage.setItem('history',
+						JSON.stringify(numberExtraNotes > 0 ? validList.slice(numberExtraNotes) : validList));
+					return numberExtraNotes > 0
+						? validList.slice(numberExtraNotes).reverse()
+						: validList.reverse();
+				}
+				localStorage.setItem('history', JSON.stringify([]));
+				return [];
+			}
+		},
+		changeView(note, remove = false) {
+			if (remove) {
+				this.$emit('remove-note', this.currentView);
+			}
+			this.history(note, !remove);
+			this.$emit('change', remove ? this.previousTab : note);
+		},
+		validateHistoryValue(noteObject) {
+			if (!noteObject) return false;
+			return (
+				typeof noteObject.subject === 'string'
+				&& typeof noteObject.tag === 'string'
+				&& typeof noteObject.content === 'object'
+			);
 		},
 		exitFromEditor(modifiedNote) {
-			this.targetEditingNote = { subject: '', tag: '', content: '' };
-			this.editMode = false;
-			this.$emit('modify', modifiedNote ? { previousNote: this.currentNote, modifiedNote } : null);
-		},
-		removeNote() {
-			this.makeSureAlertVisibility = false;
-			this.$emit('remove-note', this.currentNote, this.previousNote);
+			this.history(modifiedNote);
+			this.$emit('update:defaultEditTag', null);
+			this.$emit('update:editMode', false);
+			this.$emit('modify', modifiedNote);
 		},
 	},
 };
 </script>
-
-<style lang="css" scoped>
-.work-env {
-	width: 100%;
-	height: 100%;
-	display: flex;
-	justify-content: center;
-	align-items: center;
-}
-
-.sub-env {
-	position: absolute;
-	width: 85%;
-	height: 70%;
-}
-
-.no-choose {
-	display: flex;
-	align-items: center;
-	justify-content: space-around;
-	flex-direction: column;
-}
-</style>
