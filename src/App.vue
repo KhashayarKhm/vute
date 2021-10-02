@@ -9,42 +9,27 @@
 			@change="currentTab = $event"
 			@create="defaultEditTag = $event"
 		/>
-		<v-main>
-			<b-container
-				class="h-100"
-				fluid
-			>
-				<b-row
-					:align-h="mobileScreenMatches ? 'around' : 'end'"
-					align-v="center"
-					cols="12"
-					style="height: 3em"
-				>
-					<h1
-						class="m-0 h3"
-						:class="{ 'mx-5': !mobileScreenMatches }"
-					>
-						<strong>Vute</strong>
-					</h1>
-				</b-row>
-				<b-row style="height: calc(100% - 3em); display: flex; justify-content: center">
-					<b-col
-						lg="9"
-						md="8"
-						cols="12"
-						order-md="2"
-						class="h-100"
-					>
-						<work-environment
-							:tags="tags"
-							:add-new="workEnvMode.addNew"
-							:note="selectedTab"
-							@modify="modifyNote"
-							@remove-note="removeNote"
-						/>
-					</b-col>
-				</b-row>
-			</b-container>
+		<app-bar
+			v-model="currentTab"
+			:editor-object="editor"
+			:view-edit-tools.sync="editMode"
+			:remove-tab.sync="removeTab"
+		/>
+		<v-main class="h-100 overflow-auto">
+			<v-progress-linear
+				color="teal accent-3"
+				:value="progress.value"
+				:active="progress.active"
+				absolute
+			/>
+			<work-environment
+				v-model="currentTab"
+				:edit-mode.sync="editMode"
+				:default-edit-tag.sync="defaultEditTag"
+				:tags="tags"
+				@modify="modifyNote"
+				@remove-note="removeNote"
+			/>
 			<v-btn
 				v-if="!desktopBreakpoint"
 				class="rounded-r-circle green accent-3 my-4 ml-n2"
@@ -65,30 +50,70 @@
 </template>
 
 <script>
+import { Editor } from 'tiptap';
+import {
+	Blockquote,
+	Bold,
+	BulletList,
+	Code,
+	CodeBlock,
+	HardBreak,
+	Heading,
+	History,
+	HorizontalRule,
+	Italic,
+	Link,
+	ListItem,
+	OrderedList,
+	Strike,
+	Underline,
+} from 'tiptap-extensions';
 import ZangoDB from 'zangodb';
+import AppBar from './components/AppBar.vue';
 import WorkEnvironment from './components/WorkEnvironment.vue';
 import NavigationDrawer from './components/NavigationDrawer.vue';
 
 export default {
 	name: 'App',
 	components: {
+		AppBar,
 		NavigationDrawer,
 		WorkEnvironment,
 	},
 	data() {
 		return {
-			workEnvMode: { addNew: false },
 			tags: [],
 			organizedNotes: {},
-			mobileScreenMatches: true,
 			database: new ZangoDB.Db('v_note', { notes: ['subject', 'tag', 'content'] }),
-			targetDisplayNote: null,
 			drawerValue: false,
-			newTabValue: null,
 			currentTabValue: 'home',
 			editMode: false,
 			desktopBreakpoint: null,
+			progress: {
+				active: false,
+				value: 0,
+			},
+			removeTab: null,
 			defaultEditTag: null,
+			editor: new Editor({
+				extensions: [
+					new Blockquote(),
+					new Bold(),
+					new BulletList(),
+					new Code(),
+					new CodeBlock(),
+					new HardBreak(),
+					new Heading({ levels: [1, 2, 3] }),
+					new History(),
+					new HorizontalRule(),
+					new Italic(),
+					new Link(),
+					new ListItem(),
+					new OrderedList(),
+					new Strike(),
+					new Underline(),
+				],
+			}),
 		};
 	},
 	computed: {
@@ -114,56 +139,48 @@ export default {
 			this.desktopBreakpoint = matchMedia('(min-width: 768px)').matches;
 		},
 		async getNotes() {
+			this.progress.active = true;
 			const notesOS = this.database.collection('notes');
 			const allNotes = await notesOS.find().toArray();
-			allNotes.forEach((noteObject) => {
+			const progressStep = 80 / allNotes.length;
+			this.progress.value = 10;
+			this.tags = [];
+			this.organizedNotes = allNotes.reduce((finalObject, noteObject) => {
 				if (!this.tags.includes(noteObject.tag)) {
 					this.tags.push(noteObject.tag);
-					this.organizedNotes[noteObject.tag] = [];
+					Object.defineProperty(finalObject, noteObject.tag, {
+						enumerable: true,
+						writable: true,
+						value: [],
+					});
 				}
-				if (
-					this.organizedNotes[noteObject.tag].findIndex(
-						/* "ono" stands for "Organized Notes Object" */
-						(ono) => ono.subject === noteObject.subject,
-					) === -1
-				) {
-					this.organizedNotes[noteObject.tag].push(noteObject);
+				if (finalObject[noteObject.tag]
+					.findIndex((note) => note._id === noteObject._id) === -1) {
+					finalObject[noteObject.tag].push(noteObject);
 				}
-			});
-			const emptyObject = {};
-			this.organizedNotes = Object.assign(emptyObject, this.organizedNotes);
+				this.progress.value += progressStep;
+				return finalObject;
+			}, {});
+			this.tags = this.tags.sort((tag) => tag === 'Other');
+			this.progress.value = 100;
+			this.progress.active = false;
+			this.progress.value = 0;
 		},
-		async modifyNote(object) {
-			if (!object) {
-				this.workEnvMode.addNew = false;
-				return;
-			}
+		modifyNote(mutateNote) {
+			if (!mutateNote) return;
 			const notesOS = this.database.collection('notes');
-			if (this.workEnvMode.addNew) {
-				notesOS.insert(object.modifiedNote);
-				this.workEnvMode.addNew = false;
+			if (mutateNote.new) {
+				notesOS.insert(mutateNote.object);
 			} else {
-				notesOS.update(object.previousNote, object.modifiedNote);
-				this.organizedNotes[object.previousNote.tag] = this.organizedNotes[
-					object.previousNote.tag
-					/* "ono" stands for "Organized Notes Object" */
-				].filter((ono) => ono.subject !== object.previousNote.subject);
-				if (object.modifiedNote.subject) {
-					this.targetDisplayNote.subject = object.modifiedNote.subject;
-				}
-				if (object.modifiedNote.tag) {
-					this.targetDisplayNote.tag = object.modifiedNote.subject;
-				}
-				if (object.modifiedNote.content) {
-					this.targetDisplayNote.content = object.modifiedNote.content;
-				}
+				notesOS.update({ _id: { $eq: mutateNote.object._id } }, mutateNote.object);
+				this.currentTab = mutateNote.object;
 			}
 			this.getNotes();
 		},
-		removeNote(targetNote, previousNote) {
-			/* eslint no-underscore-dangle: 0 */
+		removeNote(targetNote) {
 			const notesOS = this.database.collection('notes');
 			notesOS.remove({ _id: targetNote._id });
+			this.removeTab = targetNote._id;
 			this.organizedNotes[targetNote.tag] = this.organizedNotes[targetNote.tag].filter(
 				(note) => note._id !== targetNote._id,
 			);
@@ -177,7 +194,6 @@ export default {
 					return object;
 				}, {});
 			}
-			this.targetDisplayNote = previousNote._id ? previousNote : null;
 		},
 	},
 };
