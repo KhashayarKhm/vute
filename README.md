@@ -21,8 +21,7 @@
 ---
 
 <p align="center">
-![GitHub](https://img.shields.io/github/license/KhashayarKhm/vute)
-![GitHub Discussions](https://img.shields.io/github/discussions/KhashayarKhm/vute)
-![GitHub issues](https://img.shields.io/github/issues-raw/KhashayarKhm/vute)
-![GitHub release (latest by date)](https://img.shields.io/github/downloads/KhashayarKhm/vute/latest/total)
+ 
+  ![GitHub](https://img.shields.io/github/license/KhashayarKhm/vute) ![GitHub Discussions](https://img.shields.io/github/discussions/KhashayarKhm/vute) ![GitHub issues](https://img.shields.io/github/issues-raw/KhashayarKhm/vute) ![GitHub release (latest by date)](https://img.shields.io/github/downloads/KhashayarKhm/vute/latest/total)
+
 </p>
