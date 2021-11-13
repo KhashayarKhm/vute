@@ -220,7 +220,7 @@ body {
 
 #app {
 	font-family: 'Markazi';
-	font-size: 1em;
+	font-size: 1.2em;
 	line-height: 1em;
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
