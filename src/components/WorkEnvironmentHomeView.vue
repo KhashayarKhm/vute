@@ -165,8 +165,11 @@ $time: 200;
 </style>
 
 <style lang="scss">
+@import '@/styles/_mixins.scss';
+
 .preview-card {
 	.content {
+		@include content-elements;
 		h1, h2, h3, p {
 			overflow: hidden;
 			white-space: nowrap;
