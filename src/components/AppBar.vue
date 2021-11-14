@@ -46,7 +46,7 @@
 								>
 									{{ tab.icon }}
 								</v-icon>
-								<span class="tab-text">
+								<span class="text-truncate tab-text">
 									{{ tab.text }}
 								</span>
 							</div>
@@ -555,7 +555,7 @@ export default {
 		width: calc(100% - 20px);
 
 		.tab-text {
-			width: calc(100% - 16px);
+			width: calc(100% - 16px - 2px);
 			margin-left: 2px;
 			text-align: left;
 			overflow: hidden;
