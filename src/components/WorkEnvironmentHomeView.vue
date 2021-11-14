@@ -37,11 +37,14 @@
 				>
 					<v-card
 						:color="item.color"
+						:title="item.note.subject"
 						class="mb-5 preview-card"
 						elevation="3"
 						@click="openNote(item.note)"
 					>
-						<v-card-title><span>{{ item.note.subject }}</span></v-card-title>
+						<v-card-title>
+							<span class="text-truncate">{{ item.note.subject }}</span>
+						</v-card-title>
 						<!-- eslint-disable vue/no-v-html -->
 						<v-card-text
 							class="content"
