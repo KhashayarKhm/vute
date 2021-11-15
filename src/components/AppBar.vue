@@ -125,7 +125,7 @@
 						absolute
 					>
 						<v-card
-							class="pa-2"
+							class="px-2 py-4"
 							width="25em"
 							elevation="3"
 							rounded
@@ -135,6 +135,7 @@
 								<v-col
 									cols="8"
 									md="10"
+									class="py-2"
 								>
 									<v-text-field
 										v-model="urlInputValue"
@@ -151,7 +152,7 @@
 								<v-col
 									cols="2"
 									md="1"
-									class="px-md-1 d-flex justify-center align-center"
+									class="py-2 px-md-1 d-flex justify-center align-center"
 								>
 									<v-btn
 										color="green"
@@ -168,7 +169,7 @@
 								<v-col
 									cols="2"
 									md="1"
-									class="px-md-1 d-flex justify-center align-center"
+									class="py-2 px-md-1 d-flex justify-center align-center"
 								>
 									<v-btn
 										:disabled="!buttonGroups[0][4].isActive"
