@@ -546,22 +546,26 @@ export default {
 	align-items: center;
 }
 
-.tab {
-	max-width: 10rem;
-	transition: .3s;
+.tabs {
+	width: calc(100% - 32px);
 
-	.tab-content {
-		display: flex;
-		align-items: center;
-		margin-left: 4px;
-		width: calc(100% - 20px);
+	.tab {
+		max-width: 10rem;
+		transition: .3s;
 
-		.tab-text {
-			width: calc(100% - 16px - 2px);
-			margin-left: 2px;
-			text-align: left;
-			overflow: hidden;
-			text-overflow: ellipsis;
+		.tab-content {
+			display: flex;
+			align-items: center;
+			margin-left: 4px;
+			width: calc(100% - 20px);
+
+			.tab-text {
+				width: calc(100% - 16px - 2px);
+				margin-left: 2px;
+				text-align: left;
+				overflow: hidden;
+				text-overflow: ellipsis;
+			}
 		}
 	}
 }
