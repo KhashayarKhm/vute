@@ -557,7 +557,7 @@ export default {
 			display: flex;
 			align-items: center;
 			margin-left: 4px;
-			width: calc(100% - 20px);
+			width: calc(100% - 24px);
 
 			.tab-text {
 				width: calc(100% - 16px - 2px);
