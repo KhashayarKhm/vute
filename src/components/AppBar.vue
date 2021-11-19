@@ -54,7 +54,7 @@
 								color="grey darken-4 mr-2"
 								icon
 								x-small
-								@click="closeTab(tab.id)"
+								@click="tabs = { value: tab.value, rm: true }"
 							>
 								<v-icon x-small>
 									mdi-close
@@ -67,7 +67,7 @@
 					class="mx-1"
 					icon
 					small
-					@click="addHomeTab"
+					@click="tabs = { value: 'home', rm: false }"
 				>
 					<v-icon dense>
 						mdi-home-outline
@@ -262,12 +262,22 @@ export default {
 			type: Number,
 			default: null,
 		},
+		allNotes: {
+			type: Object,
+			required: true,
+			validator(value) {
+				return Object.values(value).every(
+					(noteList) => Array.isArray(noteList)
+					&& noteList.every((note) => note.constructor === Object),
+				);
+			},
+		},
 	},
 	data() {
 		return {
 			selectedTab: 0,
 			tabClasses: 'tab rounded blue-grey ml-1 grey--text text--darken-3 px-0 text-none justify-space-between',
-			noteObjectList: ['home'],
+			tabsData: ['home'],
 			buttonGroupsInToolbar: 1,
 			buttonGroups: [
 				[
@@ -373,25 +383,63 @@ export default {
 		};
 	},
 	computed: {
-		tabs() {
-			return this.noteObjectList.map((item) => {
-				switch (item) {
-					case 'home':
-						return {
-							text: 'Home',
-							icon: 'mdi-home-outline',
-							id: 'home',
-							value: item,
-						};
-					default:
-						return {
-							text: item.subject,
-							icon: 'mdi-notebook-outline',
-							id: item._id,
-							value: item,
-						};
+		tabs: {
+			set(obj) {
+				const { value } = obj;
+				const valueIndex = Object.values(this.tabsData)
+					.findIndex((noteObject) => noteObject._id === value._id);
+				if (!obj.rm) {
+					if (value instanceof Object) {
+						// Open tab
+						if (this.tabsData.length === 1 && this.tabsData[0] === 'home') {
+							this.tabsData = this.tabsData.slice(1).concat(value);
+						} else if (valueIndex === -1) {
+							this.tabsData = this.tabsData.concat(value);
+							this.selectedTab = this.tabsData.length - 1;
+						} else {
+							this.$set(this.tabsData, valueIndex, value);
+							this.selectedTab = valueIndex;
+						}
+					} else {
+						// Open home tab
+						const homeIndex = this.tabsData.findIndex((tab) => tab === 'home');
+						if (homeIndex !== -1) {
+							this.selectedTab = homeIndex;
+						} else {
+							this.tabsData = this.tabsData.concat('home');
+							this.selectedTab = this.tabsData.length - 1;
+						}
+						this.$emit('change', 'home');
+					}
+				} else if (valueIndex !== -1) {
+					// Close tab (if exist)
+					this.tabsData = this.tabsData.filter((tab) => tab._id !== value._id);
+					if (!this.tabsData.length) {
+						this.tabsData = this.tabsData.concat('home');
+					}
+					this.$emit('change', this.tabsData[valueIndex] || this.tabsData[valueIndex - 1]);
 				}
-			});
+			},
+			get() {
+				return this.tabsData.map((item) => {
+					switch (item) {
+						case 'home':
+							return {
+								text: 'Home',
+								icon: 'mdi-home-outline',
+								id: 'home',
+								value: item,
+							};
+						default:
+							return {
+								text: item.subject,
+								icon: 'mdi-notebook-outline',
+								id: item._id,
+								value: item,
+							};
+					}
+				});
+			},
 		},
 		urlValidity() {
 			// eslint-disable-next-line
@@ -423,20 +471,7 @@ export default {
 	},
 	watch: {
 		currentTab(value) {
-			if (value instanceof Object) {
-				const valueIndex = this.noteObjectList
-					.findIndex((noteObject) => noteObject._id === value._id);
-				if (this.noteObjectList.length === 1 && this.noteObjectList[0] === 'home') {
-					this.noteObjectList.splice(0, 1, value);
-				} else if (valueIndex === -1) {
-					this.noteObjectList = this.noteObjectList.concat(value);
-					this.selectedTab = this.noteObjectList.length - 1;
-				} else {
-					this.selectedTab = valueIndex;
-				}
-			} else {
-				this.addHomeTab();
-			}
+			this.tabs = { value, rm: false };
 		},
 		'editorObject.isActive': function activateWatcher(activateObject) {
 			const ignoredCommands = ['doc', 'text', 'redo', 'undo', 'hard_break', 'list_item'];
@@ -465,7 +500,7 @@ export default {
 		},
 		removeTab(value) {
 			if (typeof value === 'number') {
-				this.closeTab(value);
+				this.tabs = { value, rm: true };
 				this.$emit('update:removeTab', null);
 			}
 		},
@@ -488,26 +523,6 @@ export default {
 				default:
 					this.buttonGroupsInToolbar = 1;
 			}
-		},
-		closeTab(tabId) {
-			const targetTabIndex = this.tabs.findIndex((tab) => tab.id === tabId);
-			if (targetTabIndex !== -1) {
-				this.noteObjectList = this.noteObjectList.filter((note, index) => index !== targetTabIndex);
-				if (!this.noteObjectList.length) {
-					this.noteObjectList = this.noteObjectList.concat('home');
-				}
-				this.$emit('change', this.noteObjectList[targetTabIndex] || this.noteObjectList[targetTabIndex - 1]);
-			}
-		},
-		addHomeTab() {
-			const homeIndex = this.noteObjectList.findIndex((noteObject) => noteObject === 'home');
-			if (homeIndex !== -1) {
-				this.selectedTab = homeIndex;
-			} else {
-				this.noteObjectList.push('home');
-				this.selectedTab = this.noteObjectList.length - 1;
-			}
-			this.$emit('change', 'home');
 		},
 		changeFormat(command, value) {
 			switch (command) {
