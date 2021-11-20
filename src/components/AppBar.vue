@@ -253,13 +253,16 @@ export default {
 	},
 	props: {
 		viewEditTools: Boolean,
-		currentTab: undefined,
+		currentTab: {
+			type: [Object, String],
+			default: 'home',
+		},
 		editorObject: {
 			type: Object,
 			required: true,
 		},
 		removeTab: {
-			type: Number,
+			type: Object,
 			default: null,
 		},
 		allNotes: {
@@ -499,7 +502,7 @@ export default {
 			}
 		},
 		removeTab(value) {
-			if (typeof value === 'number') {
+			if (value && value.constructor === Object) {
 				this.tabs = { value, rm: true };
 				this.$emit('update:removeTab', null);
 			}

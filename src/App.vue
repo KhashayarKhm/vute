@@ -185,9 +185,13 @@ export default {
 		removeNote(targetNote) {
 			const notesOS = this.database.collection('notes');
 			notesOS.remove({ _id: targetNote._id });
-			this.removeTab = targetNote._id;
-			this.organizedNotes[targetNote.tag] = this.organizedNotes[targetNote.tag].filter(
-				(note) => note._id !== targetNote._id,
+			this.removeTab = targetNote;
+			this.$set(
+				this.organizedNotes,
+				targetNote.tag,
+				this.organizedNotes[targetNote.tag].filter(
+					(note) => note._id !== targetNote._id,
+				),
 			);
 			this.tags = this.tags.filter((tag) => tag !== targetNote.tag);
 			if (!this.organizedNotes[targetNote.tag].length) {
