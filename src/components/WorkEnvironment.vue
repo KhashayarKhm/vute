@@ -40,7 +40,8 @@ export default {
 			default: () => [],
 		},
 		currentView: {
-			validator: (noteObject) => noteObject === 'home' || (typeof noteObject.tag === 'string' && typeof noteObject.content === 'object'),
+			validator: (noteObject) => noteObject === 'home'
+				|| (typeof noteObject.subject === 'string' && typeof noteObject.tag === 'string' && typeof noteObject.content === 'object'),
 			default: 'home',
 			required: true,
 		},
@@ -165,7 +166,9 @@ export default {
 			);
 		},
 		exitFromEditor(modifiedNote) {
-			this.history(modifiedNote);
+			if (modifiedNote && !modifiedNote.new) {
+				this.history(modifiedNote.object);
+			}
 			this.$emit('update:defaultEditTag', null);
 			this.$emit('update:editMode', false);
 			this.$emit('modify', modifiedNote);
