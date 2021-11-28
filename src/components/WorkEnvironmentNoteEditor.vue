@@ -7,14 +7,16 @@
 		tile
 	>
 		<v-form>
+			<!-- Header input -->
 			<v-text-field
 				v-model="newSubject"
-				class="text-h3"
+				class="input-max-height-43 text-h4 font-weight-medium"
 				label="Subject"
 				outlined
 				hide-details
 			/>
 			<v-divider class="my-5" />
+			<!-- Tag input -->
 			<v-combobox
 				v-model="selectedTag"
 				:items="computedTags"
@@ -51,6 +53,7 @@
 					</v-chip>
 				</template>
 			</v-combobox>
+			<!-- Content input -->
 			<v-input
 				ref="editorInput"
 				:class="{
@@ -221,7 +224,7 @@ export default {
 
 #editor-input {
 	padding-right: 12px;
-	margin-top: 10px;
+	margin: 10px 0;
 	align-self: stretch;
 	flex: 1 1 auto;
 	max-width: 100%;
@@ -235,6 +238,12 @@ export default {
 		color: #FFFFFF;
 		outline: none;
 		overflow: auto;
+	}
+}
+
+.input-max-height-43 {
+	input {
+		max-height: 43px !important;
 	}
 }
 </style>

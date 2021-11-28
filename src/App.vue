@@ -14,6 +14,7 @@
 			:editor-object="editor"
 			:view-edit-tools.sync="editMode"
 			:remove-tab.sync="removeTab"
+			:all-notes="organizedNotes"
 		/>
 		<v-main class="h-100 overflow-auto">
 			<v-progress-linear
@@ -122,8 +123,8 @@ export default {
 				if (value === 'home') {
 					this.currentTabValue = value;
 				} else if (value instanceof Object) {
-					const emptyObject = {};
-					this.currentTabValue = Object.assign(emptyObject, value);
+					this.currentTabValue = Object.values(this.organizedNotes)
+						.flat().find((note) => note._id === value._id);
 				}
 			},
 			get() {
@@ -145,34 +146,38 @@ export default {
 			const progressStep = 80 / allNotes.length;
 			this.progress.value = 10;
 			this.tags = [];
-			this.organizedNotes = allNotes.reduce((finalObject, noteObject) => {
-				if (!this.tags.includes(noteObject.tag)) {
-					this.tags.push(noteObject.tag);
-					Object.defineProperty(finalObject, noteObject.tag, {
-						enumerable: true,
-						writable: true,
-						value: [],
-					});
-				}
-				if (finalObject[noteObject.tag]
-					.findIndex((note) => note._id === noteObject._id) === -1) {
-					finalObject[noteObject.tag].push(noteObject);
-				}
-				this.progress.value += progressStep;
-				return finalObject;
-			}, {});
+			this.$set(
+				this,
+				'organizedNotes',
+				allNotes.reduce((finalObject, noteObject) => {
+					if (!this.tags.includes(noteObject.tag)) {
+						this.tags = this.tags.concat(noteObject.tag);
+						Object.defineProperty(finalObject, noteObject.tag, {
+							enumerable: true,
+							writable: true,
+							value: [],
+						});
+					}
+					if (finalObject[noteObject.tag]
+						.findIndex((note) => note._id === noteObject._id) === -1) {
+						finalObject[noteObject.tag].push(noteObject);
+					}
+					this.progress.value += progressStep;
+					return finalObject;
+				}, {}),
+			);
 			this.tags = this.tags.sort((tag) => tag === 'Other');
 			this.progress.value = 100;
 			this.progress.active = false;
 			this.progress.value = 0;
 		},
-		modifyNote(mutateNote) {
+		async modifyNote(mutateNote) {
 			if (!mutateNote) return;
 			const notesOS = this.database.collection('notes');
 			if (mutateNote.new) {
-				notesOS.insert(mutateNote.object);
+				await notesOS.insert(mutateNote.object);
 			} else {
-				notesOS.update({ _id: { $eq: mutateNote.object._id } }, mutateNote.object);
+				await notesOS.update({ _id: { $eq: mutateNote.object._id } }, mutateNote.object);
 				this.currentTab = mutateNote.object;
 			}
 			this.getNotes();
@@ -180,9 +185,13 @@ export default {
 		removeNote(targetNote) {
 			const notesOS = this.database.collection('notes');
 			notesOS.remove({ _id: targetNote._id });
-			this.removeTab = targetNote._id;
-			this.organizedNotes[targetNote.tag] = this.organizedNotes[targetNote.tag].filter(
-				(note) => note._id !== targetNote._id,
+			this.removeTab = targetNote;
+			this.$set(
+				this.organizedNotes,
+				targetNote.tag,
+				this.organizedNotes[targetNote.tag].filter(
+					(note) => note._id !== targetNote._id,
+				),
 			);
 			this.tags = this.tags.filter((tag) => tag !== targetNote.tag);
 			if (!this.organizedNotes[targetNote.tag].length) {
@@ -216,6 +225,7 @@ html {
 body {
 	width: 100%;
 	height: 100%;
+	overflow: hidden;
 }
 
 #app {

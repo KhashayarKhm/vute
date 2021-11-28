@@ -6,7 +6,9 @@
 		tile
 	>
 		<div class="d-flex justify-space-between align-center">
-			<h1>{{ note.subject }}</h1>
+			<h1 class="subject">
+				{{ note.subject }}
+			</h1>
 			<div>
 				<v-btn
 					class="orange mx-1"
@@ -134,6 +136,13 @@ export default {
 	},
 };
 </script>
+
+<style scoped>
+.subject {
+	line-height: 1em;
+	width: 85%;
+}
+</style>
 
 <style lang="scss">
 @import '@/styles/_mixins';

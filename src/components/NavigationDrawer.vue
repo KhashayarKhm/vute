@@ -108,8 +108,13 @@
 				nav
 			>
 				<v-list-item>
+					<v-list-item-icon class="mr-1">
+						<v-icon small>
+							mdi-tag
+						</v-icon>
+					</v-list-item-icon>
 					<v-list-item-content>
-						<span>{{ selectedTag }}</span>
+						<span style="font-size: 1.2em;">{{ selectedTag }}</span>
 					</v-list-item-content>
 					<v-btn
 						small
