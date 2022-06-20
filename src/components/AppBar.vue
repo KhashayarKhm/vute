@@ -54,7 +54,7 @@
 								color="grey darken-4 mr-2"
 								icon
 								x-small
-								@click="tabs = { value: tab.value, rm: true }"
+								@click.stop="tabs = { value: tab.value, rm: true }"
 							>
 								<v-icon x-small>
 									mdi-close
@@ -420,7 +420,7 @@ export default {
 					if (!this.tabsData.length) {
 						this.tabsData = this.tabsData.concat('home');
 					}
-					this.$emit('change', this.tabsData[valueIndex] || this.tabsData[valueIndex - 1]);
+					this.$emit('change', this.tabsData[valueIndex + 1] || this.tabsData[valueIndex]);
 				}
 			},
 			get() {
