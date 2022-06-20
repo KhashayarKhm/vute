@@ -1,9 +1,11 @@
 module.exports = {
 	root: true,
+
 	env: {
 		browser: true,
 		es6: true,
 	},
+
 	extends: [
 		'plugin:vue/essential',
 		'plugin:vue/strongly-recommended',
@@ -12,16 +14,20 @@ module.exports = {
 		'plugin:import/warnings',
 		'airbnb-base',
 	],
+
 	globals: {
 		Atomics: 'readonly',
 		SharedArrayBuffer: 'readonly',
 	},
+
 	parserOptions: {
 		ecmaVersion: 2018,
 		parser: 'babel-eslint',
 		sourceType: 'module',
 	},
+
 	plugins: ['vue'],
+
 	rules: {
 		'no-console': 'off',
 		indent: [2, 'tab', { SwitchCase: 1 }],
@@ -34,6 +40,7 @@ module.exports = {
 			ignorePropertyModificationsFor: ['state'],
 		}],
 	},
+
 	settings: {
 		'import/resolver': {
 			'eslint-import-resolver-custom-alias': {
@@ -44,4 +51,16 @@ module.exports = {
 			},
 		},
 	},
+
+	overrides: [
+		{
+			files: [
+				'**/__tests__/*.{j,t}s?(x)',
+				'**/tests/unit/**/*.spec.{j,t}s?(x)',
+			],
+			env: {
+				jest: true,
+			},
+		},
+	],
 };
